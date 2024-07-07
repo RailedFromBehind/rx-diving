@@ -80,17 +80,19 @@ end
 Citizen.CreateThread(function()
     local matspot = (divingMaterialSpot[math.random(#divingMaterialSpot)])
     while true do
-        Citizen.Wait(0)
         local playerPed = PlayerPedId()
         local playerCoords = GetEntityCoords(playerPed)
+        local wait = 1000
 
         if #(playerCoords - divingSite) < 150 and IsPedSwimmingUnderWater(playerPed) then
+            wait = 0
             DrawText3Ds(matspot.x, matspot.y, matspot.z, "[E] Pick-Up materials")
             if IsControlJustReleased(1, 38) and #(playerCoords - matspot) < 1.5 then
                 GiveMaterialMathamaticsThings()
                 matspot = (divingMaterialSpot[math.random(#divingMaterialSpot)])
             end
         end
+        Citizen.Wait(wait)
     end
 end)
 
