@@ -1,6 +1,11 @@
 local QBCore = exports['qb-core']:GetCoreObject()
 
+local checkStuff = false
+
 local divingSite = vector3(3178.4299316406,-356.15112304688,0.4938257932663)
+
+
+
 
 local divingMaterialSpot = {
     [1] = vector3(3195.5869140625,-388.41351318359,-31.486166000366),
@@ -22,15 +27,6 @@ local divingMaterialSpot = {
     [17] = vector3(3197.2004394531,-395.84091186523,-26.442941665649)
 }
 
-local materials = {
-    [1] = ('glass'),
-    [2] = ('rubber'),
-    [3] = ('steel'),
-    [4] = ('aluminum'),
-    [5] = ('metalscrap'),
-}
-
-local specialItem = 'goldbar'
 
 
 -- Blip --
@@ -53,64 +49,9 @@ end)
 
 -- End Blip --
 
-
-
-
-
-local function GiveMaterialMathamaticsThings()
-    local randomMaterial = (materials[math.random(#materials)])
-    local chance = math.random(1, 100)
-    local amountEachPickup = math.random(1, 3)
-    print(chance)
-
-    if chance <= 100 and chance >= 30 then
-        QBCore.Functions.Notify('You Found x' .. amountEachPickup .. " " .. randomMaterial)
-        TriggerServerEvent('rx-diving:server:giveItem', randomMaterial, amountEachPickup)
-    elseif chance < 10 and chance >= 1 then
-        QBCore.Functions.Notify('You Found ' .. specialItem)
-        TriggerServerEvent('rx-diving:server:giveItem', specialItem)
-    else
-        QBCore.Functions.Notify('You Found Nothing ')
-    end
-end
-
-
-
-
-Citizen.CreateThread(function()
-    local matspot = (divingMaterialSpot[math.random(#divingMaterialSpot)])
-    while true do
-        local playerPed = PlayerPedId()
-        local playerCoords = GetEntityCoords(playerPed)
-        local wait = 1000
-
-        if #(playerCoords - divingSite) < 150 and IsPedSwimmingUnderWater(playerPed) then
-            wait = 0
-            DrawText3Ds(matspot.x, matspot.y, matspot.z, "[E] Pick-Up materials")
-            if IsControlJustReleased(1, 38) and #(playerCoords - matspot) < 1.5 then
-                GiveMaterialMathamaticsThings()
-                matspot = (divingMaterialSpot[math.random(#divingMaterialSpot)])
-            end
-        end
-        Citizen.Wait(wait)
-    end
-end)
-
-
-
-
-
-
-
-
-
-
-
-
-
-function DrawText3Ds(x, y, z, text)
+local function DrawText3Ds(x, y, z, text)
     local onScreen, _x, _y = World3dToScreen2d(x, y, z)
-    local px, py, pz=table.unpack(GetGameplayCamCoords())
+    local px, py, pz = table.unpack(GetGameplayCamCoords())
     
     SetTextScale(0.35, 0.35)
     SetTextFont(4)
@@ -123,3 +64,45 @@ function DrawText3Ds(x, y, z, text)
     DrawText(_x, _y)
     local factor = (string.len(text)) / 370
 end
+
+
+CreateThread(function()
+    local divingZone = BoxZone:Create(vector3(3133.3733, -354.1701, 4.7429), 4.0, 4.0, {
+        name="diving_zone",
+        offset = {0.0, 0.0, 0.0},
+        scale = {100.0, 50.0, 5.0},
+        debugPoly = false,
+    })
+
+    divingZone:onPlayerInOut(function(isPointInside)
+        if isPointInside then
+            checkStuff = true
+            print("In Zone")
+            StartDivingLoopInZone()
+        end
+    end)
+end)
+
+
+
+function StartDivingLoopInZone()
+    Citizen.CreateThread(function()
+        local matspot = (divingMaterialSpot[math.random(#divingMaterialSpot)])
+        while checkStuff do
+            Citizen.Wait(0)
+            local playerPed = PlayerPedId()
+            local playerCoords = GetEntityCoords(playerPed)
+
+            if IsPedSwimmingUnderWater(playerPed) then
+                DrawText3Ds(matspot.x, matspot.y, matspot.z, "[E] Pick-Up materials")
+                if IsControlJustReleased(1, 38) and #(playerCoords - matspot) < 1.5 then
+                    TriggerServerEvent("rx-diving:server:giveDivingRewards")
+                    matspot = (divingMaterialSpot[math.random(#divingMaterialSpot)])
+                end
+            end
+        end
+    end)
+end
+
+
+
