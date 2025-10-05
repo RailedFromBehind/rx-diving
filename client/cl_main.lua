@@ -43,9 +43,10 @@ local function createBlips()
     end)
 end
 
-RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function()
+AddEventHandler('QBCore:Client:OnPlayerLoaded', function()
     createBlips()
 end)
+
 
 -- End Blip --
 
