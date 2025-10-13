@@ -1,4 +1,4 @@
-# RX-Diving | QBCore
+# RX-Diving | QBCore & Qbox
 
 
 ## Inspired By LegacyRP
