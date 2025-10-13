@@ -4,10 +4,8 @@ local checkStuff = false
 
 local divingSite = vector3(3178.4299316406,-356.15112304688,0.4938257932663)
 
-
-
-
 local divingMaterialSpot = {
+    --[[
     [1] = vector3(3195.5869140625,-388.41351318359,-31.486166000366),
     [2] = vector3(3210.2219238281,-391.32678222656,-39.039096832275),
     [3] = vector3(3205.5192871094,-418.4719543457,-35.239002227783),
@@ -24,9 +22,12 @@ local divingMaterialSpot = {
     [14] = vector3(3158.5910644531,-275.22225952148,-26.838846206665),
     [15] = vector3(3136.3620605469,-239.09652709961,-25.038454055786),
     [16] = vector3(3162.2995605469,-259.06661987305,-26.738998413086),
-    [17] = vector3(3197.2004394531,-395.84091186523,-26.442941665649)
-}
+    [17] = vector3(3197.2004394531,-395.84091186523,-26.442941665649),
+]]
+    [1] = vector3(3194.6992, -343.7542, -25.1440),
+    [2] = vector3(3204.0923, -348.2754, -24.9888)
 
+}
 
 
 -- Blip --
@@ -78,12 +79,10 @@ CreateThread(function()
     divingZone:onPlayerInOut(function(isPointInside)
         if isPointInside then
             checkStuff = true
-            print("In Zone")
             StartDivingLoopInZone()
         end
     end)
 end)
-
 
 
 function StartDivingLoopInZone()
@@ -93,17 +92,17 @@ function StartDivingLoopInZone()
             Citizen.Wait(0)
             local playerPed = PlayerPedId()
             local playerCoords = GetEntityCoords(playerPed)
+            local dist = #(matspot - playerCoords)
+            local distMeters = math.floor(dist + 0.5)
 
             if IsPedSwimmingUnderWater(playerPed) then
-                DrawText3Ds(matspot.x, matspot.y, matspot.z, "[E] Pick-Up materials")
+                DrawText3Ds(matspot.x, matspot.y, matspot.z, ("[E] Pick-Up materials (%dm)"):format(distMeters))
                 if IsControlJustReleased(1, 38) and #(playerCoords - matspot) < 1.5 then
-                    TriggerServerEvent("rx-diving:server:giveDivingRewards")
+                    TriggerServerEvent("rx-diving:server:CheckCanRevieveReward", matspot.x, matspot.y, matspot.z)
                     matspot = (divingMaterialSpot[math.random(#divingMaterialSpot)])
                 end
             end
         end
     end)
 end
-
-
 
